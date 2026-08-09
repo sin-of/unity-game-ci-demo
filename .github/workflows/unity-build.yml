@@ -1,0 +1,57 @@
+name: Unity Auto Build
+
+on:
+  push:
+    branches: [ main ]  # 只要往main分支推送代码就触发打包
+  workflow_dispatch:    # 支持手动在GitHub页面点击运行
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: 拉取仓库代码
+        uses: actions/checkout@v4
+
+      - name: Unity 打包 Windows 版本
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: WindowsStandalone
+          buildName: SubwaySurfers-Win
+          projectPath: .
+          buildsPath: Builds
+
+      - name: 上传Windows安装包到Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: 自动构建版本 ${{ github.run_number }}
+          files: Builds/WindowsStandalone/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-webgl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取仓库代码
+        uses: actions/checkout@v4
+
+      - name: Unity 打包 WebGL 网页版
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: WebGL
+          buildName: SubwaySurfers-WebGL
+          projectPath: .
+          buildsPath: Builds
+
+      - name: 上传WebGL包到Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: 自动构建版本 ${{ github.run_number }}
+          files: Builds/WebGL/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
